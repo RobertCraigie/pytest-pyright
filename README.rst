@@ -10,7 +10,7 @@ pytest-pyright
     :target: https://pypi.org/project/pytest-pyright
     :alt: Python versions
 
-Pytest plugin for typechecking code with Pyright.
+Pytest plugin for type checking code with Pyright.
 
 ----
 

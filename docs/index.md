@@ -1,3 +1,3 @@
 # Welcome to pytest-pyright
 
-Pytest plugin for typechecking code with Pyright
+Pytest plugin for type checking code with Pyright

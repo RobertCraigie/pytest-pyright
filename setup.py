@@ -33,7 +33,7 @@ setup(
     maintainer_email='robertcraigie30@gmail.com',
     license='MIT',
     url='https://github.com/RobertCraigie/pytest-pyright',
-    description='Pytest plugin for typechecking code with Pyright',
+    description='Pytest plugin for type checking code with Pyright',
     long_description=read('README.rst'),
     packages=find_packages(include=['pytest_pyright', 'pytest_pyright.*']),
     python_requires='>=3.6',
