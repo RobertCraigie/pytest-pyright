@@ -1,0 +1,14 @@
+site_name: pytest-pyright
+site_description: Pytest plugin for typechecking code with Pyright
+site_author: Robert Craigie
+
+theme:
+  name: material
+  palette:
+    primary: pink
+    accent: pink
+
+repo_url: https://github.com/RobertCraigie/pytest-pyright
+
+pages:
+- Home: index.md
