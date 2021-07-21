@@ -19,12 +19,13 @@ from .models import PyrightResult, PyrightFile
 
 if TYPE_CHECKING:
     from _pytest._code.code import _TracebackStyle
+    from _pytest.config.argparsing import Parser
 
 
 # TODO: better diffs
 # TODO: cleanup code
 # TODO: improve performance
-# TODO: custom typesafety dir
+# TODO: ini option for custom typesafety
 # TODO: add support for multi-line errors
 # TODO: add option to display pyright output
 
@@ -35,16 +36,26 @@ def relative_path(path: LocalPath) -> Path:
     return Path(path).relative_to(Path.cwd())
 
 
-def is_typesafety_file(path: LocalPath) -> bool:
+def is_typesafety_file(parent: Node, path: LocalPath) -> bool:
     relative = relative_path(path)
-    return relative.parts[0] == 'typesafety'
+    return relative.parts[0] == parent.config.option.pyright_dir
 
 
 def pytest_collect_file(path: LocalPath, parent: Node) -> Optional['PyrightTestFile']:
-    if path.ext == '.py' and is_typesafety_file(path):
+    if path.ext == '.py' and is_typesafety_file(parent, path):
         return PyrightTestFile.from_parent(parent, fspath=path)
 
     return None
+
+
+def pytest_addoption(parser: 'Parser'):
+    group = parser.getgroup('pyright')
+    group.addoption(
+        '--pyright-dir',
+        action='store',
+        default='typesafety',
+        help='Specify the root directory to use to search for pyright tests.'
+    )
 
 
 class TraceLastReprEntry(ReprEntry):

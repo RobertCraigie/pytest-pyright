@@ -111,3 +111,17 @@ def test_error_message_missing(testdir: 'Testdir') -> None:
         '*Unexpected error on line 4: "split" is not a known member of "None"',
     ])
     assert 'pytest_pyright.plugin.PyrightError' in result.stdout.str()
+
+
+def test_custom_pyright_directory_commandline(testdir: 'Testdir') -> None:
+    testdir.makepyfile(**{'my_pyright_tests/bar.py': '''
+        from typing import Optional
+
+        def foo(a: Optional[str]) -> None:
+            print(a.split('.'))
+    '''})
+    result = testdir.runpytest('--collect-only')
+    assert result.parseoutcomes() == {}
+
+    result = testdir.runpytest('--pyright-dir=my_pyright_tests', '--collect-only')
+    assert result.parseoutcomes() == {'test': 1}
