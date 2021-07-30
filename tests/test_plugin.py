@@ -125,3 +125,17 @@ def test_custom_pyright_directory_commandline(testdir: 'Testdir') -> None:
 
     result = testdir.runpytest('--pyright-dir=my_pyright_tests', '--collect-only')
     assert result.parseoutcomes() == {'test': 1}
+
+
+def test_custom_pyright_directory_commandline_multiple_parts(testdir: 'Testdir') -> None:
+    testdir.makepyfile(**{'custom_typesafety/pyright/bar.py': '''
+        from typing import Optional
+
+        def foo(a: Optional[str]) -> None:
+            print(a.split('.'))
+    '''})
+    result = testdir.runpytest('--collect-only')
+    assert result.parseoutcomes() == {}
+
+    result = testdir.runpytest('--pyright-dir=custom_typesafety/pyright', '--collect-only')
+    assert result.parseoutcomes() == {'test': 1}

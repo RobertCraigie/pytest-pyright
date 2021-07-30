@@ -37,8 +37,9 @@ def relative_path(path: LocalPath) -> Path:
 
 
 def is_typesafety_file(parent: Node, path: LocalPath) -> bool:
+    # TODO: don't know how good this check is
     relative = relative_path(path)
-    return relative.parts[0] == parent.config.option.pyright_dir
+    return relative.as_posix().startswith(parent.config.option.pyright_dir)
 
 
 def pytest_collect_file(path: LocalPath, parent: Node) -> Optional['PyrightTestFile']:
