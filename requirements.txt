@@ -1,4 +1,4 @@
 pytest>=3.5.0
-pyright>=0.0.5
+pyright>=0.0.6
 # TODO: validate this version requirement
 pydantic>=1.6.0

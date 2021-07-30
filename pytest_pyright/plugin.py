@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional, Union, Iterator, Any, cast, TYPE_CHECKING
 
 import pytest
+import pyright
 from py._path.local import LocalPath
 
 from _pytest.nodes import Node
@@ -97,13 +98,10 @@ class PyrightTestItem(pytest.Item):
 
     def runtest(self) -> None:
         file = PyrightFile.parse(self.path)
-        process = subprocess.run(
-            [
-                'pyright',
-                f'--project={self.path.parent}',
-                '--outputjson',
-                str(self.path),
-            ],
+        process = pyright.run(
+            f'--project={self.path.parent}',
+            '--outputjson',
+            str(self.path),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
