@@ -107,10 +107,12 @@ class PyrightTestItem(pytest.Item):
         )
 
         # https://github.com/microsoft/pyright/blob/main/docs/command-line.md#pyright-exit-codes
-        if process.returncode in {2, 3, 4}:
+        if process.returncode not in {0, 1}:
             print(process.stderr.decode('utf-8', file=sys.stderr))
             print(process.stdout.decode('utf-8'))
-            raise PyrightError('')
+            raise PyrightError(
+                'An unknown error ocurred while running pyright, see the output above.'
+            )
 
         result = PyrightResult.parse_raw(process.stdout)
         absolute = str(self.path.absolute())
