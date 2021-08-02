@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import re
-from pathlib import Path
 from typing import List, Dict, Optional
 
 from pydantic import BaseModel, Field
@@ -21,11 +20,11 @@ class PyrightFile(BaseModel):
     informations: Dict[int, Expected]
 
     @classmethod
-    def parse(cls, path: Path) -> 'PyrightFile':
+    def parse(cls, content: str) -> 'PyrightFile':
         errors: Dict[int, Expected] = {}
         informations: Dict[int, Expected] = {}
 
-        for index, line in enumerate(path.read_text().splitlines(), start=1):
+        for index, line in enumerate(content.splitlines(), start=1):
             reveal = REVEAL_TYPE_RE.match(line)
             if reveal is not None:
                 informations[index] = Expected(message=reveal.group('expected'))

@@ -4,7 +4,8 @@ import re
 import sys
 import subprocess
 from pathlib import Path
-from typing import Optional, Union, Iterator, Any, cast, TYPE_CHECKING
+from functools import lru_cache
+from typing import Optional, List, Union, Iterator, Any, cast, TYPE_CHECKING
 
 import pytest
 import pyright
@@ -14,7 +15,7 @@ from _pytest.nodes import Node
 from _pytest.config import Config
 from _pytest._io import TerminalWriter
 from _pytest._code import ExceptionInfo
-from _pytest._code.code import TerminalRepr, ReprEntry, ReprFileLocation
+from _pytest._code.code import TerminalRepr
 
 from .models import PyrightResult, PyrightFile
 
@@ -23,12 +24,12 @@ if TYPE_CHECKING:
     from _pytest.config.argparsing import Parser
 
 
-# TODO: better diffs
 # TODO: cleanup code
 # TODO: improve performance
-# TODO: ini option for custom typesafety
+# TODO: ini option for custom dir
 # TODO: add support for multi-line errors
-# TODO: add option to display pyright output
+# TODO: add support for multiple errors on the same line
+# TODO: check for unaccessed type information
 
 PYRIGHT_TYPE_RE = re.compile(r'Type of "(.*)" is "(?P<type>.*)"')
 
@@ -43,10 +44,15 @@ def is_typesafety_file(parent: Node, path: LocalPath) -> bool:
     return relative.as_posix().startswith(parent.config.option.pyright_dir)
 
 
+def maybe_decode(data: Union[bytes, str]) -> str:
+    if isinstance(data, bytes):
+        return data.decode('utf-8')
+    return data
+
+
 def pytest_collect_file(path: LocalPath, parent: Node) -> Optional['PyrightTestFile']:
     if path.ext == '.py' and is_typesafety_file(parent, path):
         return PyrightTestFile.from_parent(parent, fspath=path)
-
     return None
 
 
@@ -56,31 +62,70 @@ def pytest_addoption(parser: 'Parser'):
         '--pyright-dir',
         action='store',
         default='typesafety',
-        help='Specify the root directory to use to search for pyright tests.'
+        help='Specify the root directory to use to search for pyright tests.',
     )
 
 
-class TraceLastReprEntry(ReprEntry):
+class PyrightTerminalRepr(TerminalRepr):
+    def __init__(self, lines: List[str]) -> None:
+        self.lines = lines
+
     def toterminal(self, tw: TerminalWriter) -> None:
-        if not self.reprfileloc:
-            return
-
-        self.reprfileloc.toterminal(tw)
         for line in self.lines:
-            red = line.startswith('E   ')
-            tw.line(line, bold=True, red=red)
+            red = line.startswith('E')
+            tw.line(line, bold=red, red=red)
 
-        return
+    @classmethod
+    def from_error(cls, error: 'PyrightError') -> 'PyrightTerminalRepr':
+        return cls(lines=[f'E |  {error.message}'])
+
+    @classmethod
+    def from_errors(cls, exc: 'PyrightErrors') -> 'PyrightTerminalRepr':
+        """Build a Repr that outputs something like the following
+
+        1 | from typing import Optional
+        2 | def foo(a: Optional[str] = None) -> None:
+        3 |     a.split('.')
+        E | "split" is not a known member of "None"
+        """
+        # TODO: cleanup
+        # TODO: add carets to show where the error ocurred
+
+        def get_separator(lineno: int) -> str:
+            return '|'.rjust(max_padding - num_digits(lineno) + 1)
+
+        def num_digits(num: int) -> int:
+            # NOTE: this assumes a positive number
+            return len(str(num))
+
+        content_lines = exc.item.content.splitlines()
+        max_padding = num_digits(len(content_lines)) + 1
+        lines = [
+            f'{lineno}{get_separator(lineno)} {content}'
+            for lineno, content in enumerate(content_lines, start=1)
+        ]
+
+        separator = '|'.rjust(max_padding)
+        for offset, error in enumerate(sorted(exc.errors, key=lambda e: e.lineno), start=0):
+            lines.insert(error.lineno + offset, f'E{separator} {error.message}')
+
+        return cls(lines=lines)
 
 
 class PyrightError(AssertionError):
-    def __init__(self, error_message: Optional[str] = None, lineno: int = 0) -> None:
-        self.error_message = error_message or ''
+    def __init__(self, message: str, lineno: int = 0) -> None:
+        self.message = message
         self.lineno = lineno
         super().__init__()
 
     def __str__(self) -> str:
-        return self.error_message
+        return self.message
+
+
+class PyrightErrors(Exception):
+    def __init__(self, errors: List[PyrightError], item: 'PyrightTestItem') -> None:
+        self.item = item
+        self.errors = errors
 
 
 class PyrightTestItem(pytest.Item):
@@ -97,7 +142,7 @@ class PyrightTestItem(pytest.Item):
         self.starting_lineno = 1
 
     def runtest(self) -> None:
-        file = PyrightFile.parse(self.path)
+        file = PyrightFile.parse(self.content)
         process = pyright.run(
             f'--project={self.path.parent}',
             '--outputjson',
@@ -108,14 +153,16 @@ class PyrightTestItem(pytest.Item):
 
         # https://github.com/microsoft/pyright/blob/main/docs/command-line.md#pyright-exit-codes
         if process.returncode not in {0, 1}:
-            print(process.stderr.decode('utf-8', file=sys.stderr))
-            print(process.stdout.decode('utf-8'))
+            print(maybe_decode(process.stderr), file=sys.stderr)
+            print(maybe_decode(process.stdout))
             raise PyrightError(
-                'An unknown error ocurred while running pyright, see the output above.'
+                'An unknown error ocurred while running pyright, '
+                'see the captured output for more details.'
             )
 
         result = PyrightResult.parse_raw(process.stdout)
         absolute = str(self.path.absolute())
+        errors: List[PyrightError] = []
 
         for diagnostic in result.diagnostics:
             if diagnostic.file != absolute:
@@ -133,88 +180,87 @@ class PyrightTestItem(pytest.Item):
                 try:
                     expected = file.get_error(line)
                 except KeyError:
-                    raise PyrightError(
-                        f'Unexpected error on line {line}: {actual}', lineno=line
-                    ) from None
+                    errors.append(
+                        PyrightError(f'Unexpected error: {actual}', lineno=line)
+                    )
+                    continue
 
                 if expected != actual:
-                    raise PyrightError(
-                        f'Expected type error on line {line} to be "{expected}" but got "{actual}" instead',
-                        lineno=line,
+                    errors.append(
+                        PyrightError(
+                            f'Expected type error to be \'{expected}\' but '
+                            f'got \'{actual}\' instead',
+                            lineno=line,
+                        )
                     )
+                    continue
             elif diagnostic.severity == 'information':
                 match = PYRIGHT_TYPE_RE.match(diagnostic.message)
                 if match is None:
-                    raise PyrightError(
-                        f'Could not extract type from message: "{diagnostic.message}" on line: {line}',
-                        lineno=line,
+                    errors.append(
+                        PyrightError(
+                            f'Could not extract type from message: "{diagnostic.message}"',
+                            lineno=line,
+                        )
                     )
+                    continue
 
                 actual = match.group('type')
 
                 try:
                     expected = file.get_information(line)
                 except KeyError:
-                    raise PyrightError(
-                        f'Missing type comment on line: {line}, revealed type: {actual}',
-                        lineno=line,
-                    ) from None
+                    errors.append(
+                        PyrightError(
+                            f'Missing type comment, revealed type: {actual}',
+                            lineno=line,
+                        )
+                    )
+                    continue
 
                 if expected != actual:
-                    raise PyrightError(
-                        f'Expected revealed type on line {line} to be "{expected}" but got "{actual}" instead',
-                        lineno=line,
+                    errors.append(
+                        PyrightError(
+                            f'Expected revealed type to be "{expected}" but got "{actual}" instead',
+                            lineno=line,
+                        )
                     )
+                    continue
             else:
-                raise PyrightError(
-                    f'Unknown diagnostic type: {diagnostic.severity}', lineno=line
+                errors.append(
+                    PyrightError(
+                        f'Unknown diagnostic type: {diagnostic.severity}', lineno=line
+                    )
                 )
 
         for line, error in file.errors.items():
             if not error.accessed:
-                raise PyrightError(
-                    f'Did not raise an error on line: {line}', lineno=line
-                )
+                errors.append(PyrightError('Did not raise an error', lineno=line))
+
+        if errors:
+            raise PyrightErrors(errors, item=self)
 
     def repr_failure(
         self,
         excinfo: ExceptionInfo[BaseException],
         style: Optional['_TracebackStyle'] = None,
     ) -> Union[str, TerminalRepr]:
-        """Remove unnecessary error traceback if applicable
+        if isinstance(excinfo.value, PyrightError):
+            return PyrightTerminalRepr.from_error(excinfo.value)
 
-        this method is taken directly from pytest-mypy-plugins along with
-        related classes, e.g. TraceLastReprEntry
-        """
-        # NOTE: I do not know how much of this code is required / functioning as expected
-        if excinfo.errisinstance(SystemExit):
-            # We assume that before doing exit() (which raises SystemExit) we've printed
-            # enough context about what happened so that a stack trace is not useful.
-            return excinfo.exconly(tryshort=True)
+        if isinstance(excinfo.value, PyrightErrors):
+            return PyrightTerminalRepr.from_errors(excinfo.value)
 
-        if excinfo.errisinstance(PyrightError):
-            # with traceback removed
-            excinfo = cast(ExceptionInfo[PyrightError], excinfo)
-            exception_repr = excinfo.getrepr(style='short')
-            exception_repr.reprcrash.message = ''  # type: ignore
-            repr_file_location = (
-                ReprFileLocation(  # pyright: reportGeneralTypeIssues=false
-                    path=self.fspath,
-                    lineno=self.starting_lineno + excinfo.value.lineno,
-                    message='',
-                )
-            )
-            repr_tb_entry = TraceLastReprEntry(
-                exception_repr.reprtraceback.reprentries[-1].lines[1:],
-                None,
-                None,
-                repr_file_location,
-                'short',
-            )
-            exception_repr.reprtraceback.reprentries = [repr_tb_entry]
-            return exception_repr
+        return super().repr_failure(excinfo, style=style)
 
-        return super().repr_failure(excinfo, style='native')
+    def reportinfo(self):
+        return self.fspath, 0, f'pyright: {self.name}'
+
+    # TODO: does this cache get deleted when the item is destroyed?
+    @property
+    @lru_cache(maxsize=None)
+    def content(self) -> str:
+        return self.path.read_text()
 
 
 class PyrightTestFile(pytest.File):
