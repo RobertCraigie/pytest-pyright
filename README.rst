@@ -10,6 +10,10 @@ pytest-pyright
     :target: https://pypi.org/project/pytest-pyright
     :alt: Python versions
 
+.. image:: https://readthedocs.org/projects/pytest-pyright/badge/?version=latest
+    :target: https://pytest-pyright.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 ⚠️ This project was created for internal use within another project of mine, support will be minimal.
 
 Pytest plugin for type checking code with Pyright.
@@ -38,7 +42,7 @@ You can install "pytest-pyright" via `pip`_ from `PyPI`_::
 Usage
 -----
 
-* TODO
+See the `documentation <https://pytest-pyright.readthedocs.io/en/latest/>`_
 
 Contributing
 ------------
