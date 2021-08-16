@@ -2,5 +2,7 @@ include LICENSE
 include README.rst
 include requirements.txt
 
+include pytest_pyright/py.typed
+
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]

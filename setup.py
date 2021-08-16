@@ -38,6 +38,7 @@ setup(
     packages=find_packages(include=['pytest_pyright', 'pytest_pyright.*']),
     python_requires='>=3.6',
     install_requires=read('requirements.txt').splitlines(),
+    zip_safe=False,
     classifiers=[
         'Development Status :: 4 - Beta',
         'Framework :: Pytest',
