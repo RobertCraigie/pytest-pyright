@@ -26,6 +26,12 @@ docs-serve:
 docs-tests:
 	tox -e docs
 
+.PHONY: release
+release:
+	python setup.py sdist
+	python setup.py sdist bdist_wheel
+	twine upload dist/*
+
 .PHONY: clean
 clean:
 	rm -rf /tmp/tox/pytest-pyright
