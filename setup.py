@@ -13,7 +13,7 @@ def read(fname):
 
 
 version = ''
-with open('pytest_pyright/__init__.py') as f:
+with open('src/pytest_pyright/__init__.py') as f:
     match = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE)
     if not match:
         raise RuntimeError('version is not set')
@@ -35,7 +35,8 @@ setup(
     url='https://github.com/RobertCraigie/pytest-pyright',
     description='Pytest plugin for type checking code with Pyright',
     long_description=read('README.rst'),
-    packages=find_packages(include=['pytest_pyright', 'pytest_pyright.*']),
+    packages=find_packages(where='src', include=['pytest_pyright', 'pytest_pyright.*']),
+    package_dir={'': 'src'},
     python_requires='>=3.6',
     install_requires=read('requirements.txt').splitlines(),
     zip_safe=False,
