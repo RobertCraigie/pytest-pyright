@@ -106,7 +106,9 @@ class PyrightTerminalRepr(TerminalRepr):
         ]
 
         separator = '|'.rjust(max_padding)
-        for offset, error in enumerate(sorted(exc.errors, key=lambda e: e.lineno), start=0):
+        for offset, error in enumerate(
+            sorted(exc.errors, key=lambda e: e.lineno), start=0
+        ):
             lines.insert(error.lineno + offset, f'E{separator} {error.message}')
 
         return cls(lines=lines)

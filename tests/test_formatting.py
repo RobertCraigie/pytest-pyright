@@ -31,6 +31,7 @@ def test_large_file(snapshot: SnapshotAssertion) -> None:
     content = 'def foo() -> None:'
     content += '\n' * 100 + 'print(a)'
     writer = create_formatter(
-        PyrightError('Unexpected error: "a" is not defined', lineno=101), content=content
+        PyrightError('Unexpected error: "a" is not defined', lineno=101),
+        content=content,
     )
     assert str(writer) == snapshot
