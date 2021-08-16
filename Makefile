@@ -22,6 +22,10 @@ docs:
 docs-serve:
 	mkdocs serve
 
+.PHONY: docs-tests
+docs-tests:
+	tox -e docs
+
 .PHONY: clean
 clean:
 	rm -rf /tmp/tox/pytest-pyright
