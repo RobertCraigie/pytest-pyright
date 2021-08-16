@@ -10,6 +10,8 @@ pytest-pyright
     :target: https://pypi.org/project/pytest-pyright
     :alt: Python versions
 
+⚠️ This project was created for internal use within another project of mine, support will be minimal.
+
 Pytest plugin for type checking code with Pyright.
 
 ----
@@ -17,16 +19,12 @@ Pytest plugin for type checking code with Pyright.
 This `pytest`_ plugin was generated with `Cookiecutter`_ along with `@hackebrot`_'s `cookiecutter-pytest-plugin`_ template.
 
 
-Features
---------
+Why Should You Use it?
+----------------------
 
-* TODO
+pytest-pyright was created to ensure that complex types are correctly constrained, i.e will raise an error if used incorrectly.
 
-
-Requirements
-------------
-
-* TODO
+if your project makes use of any complex types you should find some value out pytest-pyright.
 
 
 Installation

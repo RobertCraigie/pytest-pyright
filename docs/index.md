@@ -1,5 +1,8 @@
 # Welcome to pytest-pyright
 
+!!! warning
+    This project was created for internal use within another project of mine, support will be minimal.
+
 pytest-pyright is a [pytest](https://pytest.org/) plugin for type checking code with [pyright](https://github.com/microsoft/pyright).
 
 ## Why Should You Use it?
