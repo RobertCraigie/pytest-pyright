@@ -1,0 +1,20 @@
+coverage:
+  status:
+    project:
+      # default is required to exist
+      default: false
+      tests:
+        target: 100%
+        paths:
+          - "tests/"
+        branches:
+          - main
+      pytest_pyright:
+        paths:
+          - "!tests/"
+        target: auto
+
+        # NOTE: flexible on this threshold
+        threshold: 5%
+        branches:
+          - main
