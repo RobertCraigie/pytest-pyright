@@ -1,0 +1,11 @@
+_____________________ pyright: unexpected_error.py _____________________
+1 | from typing import TypedDict
+2 |
+3 |
+4 | class Data(TypedDict, total=False):
+5 |     points: int
+6 |
+7 |
+8 | def data_handler(data: Data) -> None:
+9 |     print(data['points'])
+E | Unexpected error: Could not access item in TypedDict

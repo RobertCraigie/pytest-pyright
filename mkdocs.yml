@@ -1,14 +1,41 @@
+strict: true
+site_url: https://example.com/
+site_dir: build/site
 site_name: pytest-pyright
 site_description: Pytest plugin for typechecking code with Pyright
 site_author: Robert Craigie
 
+repo_name: RobertCraigie/pytest-pyright
+repo_url: https://github.com/RobertCraigie/pytest-pyright
+
 theme:
   name: material
   palette:
-    primary: pink
-    accent: pink
+    - scheme: default
+      primary: red
+      accent: red
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: pink
+      accent: pink
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  # TODO
+  # logo: 'logo.svg'
+  # favicon: 'favicon.png'
+  font:
+    text: Roboto
+    code: Roboto Mono
 
-repo_url: https://github.com/RobertCraigie/pytest-pyright
+markdown_extensions:
+  - admonition
+  - pymdownx.snippets
+  - pymdownx.highlight
+  - pymdownx.superfences
 
-pages:
+nav:
 - Home: index.md
+- Quickstart: quickstart.md
