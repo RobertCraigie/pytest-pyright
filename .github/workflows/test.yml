@@ -28,7 +28,7 @@ jobs:
         - python-version: 3.6
           tox-env: py36
         - python-version: 3.9
-          tox-env: py39
+          tox-env: py39,docs
 
     steps:
       - uses: actions/checkout@v1
@@ -52,7 +52,7 @@ jobs:
 
       - name: Run tests
         run: |
-          tox -e setup,${{ matrix.tox-env }},docs,report
+          tox -e setup,${{ matrix.tox-env }},report
 
       - name: Upload coverage
         run: |
