@@ -13,7 +13,7 @@ source .venv/bin/activate
 Install dependencies
 
 ```sh
-pip install -U pytest git+https://github.com/RobertCraigie/pytest-pyright/
+pip install -U pytest pytest-pyright
 ```
 
 Create a typesafety directory
