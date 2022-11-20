@@ -9,7 +9,6 @@ from typing import Optional, List, Union, Iterator, Any, cast, TYPE_CHECKING
 
 import pytest
 import pyright
-from py._path.local import LocalPath
 
 from _pytest.nodes import Node
 from _pytest.config import Config
@@ -34,11 +33,11 @@ if TYPE_CHECKING:
 PYRIGHT_TYPE_RE = re.compile(r'Type of "(.*)" is "(?P<type>.*)"')
 
 
-def relative_path(path: LocalPath) -> Path:
-    return Path(path).relative_to(Path.cwd())
+def relative_path(path: Path) -> Path:
+    return path.relative_to(Path.cwd())
 
 
-def is_typesafety_file(parent: Node, path: LocalPath) -> bool:
+def is_typesafety_file(parent: Node, path: Path) -> bool:
     # TODO: don't know how good this check is
     relative = relative_path(path)
     return relative.as_posix().startswith(parent.config.option.pyright_dir)
@@ -50,9 +49,9 @@ def maybe_decode(data: Union[bytes, str]) -> str:
     return data
 
 
-def pytest_collect_file(path: LocalPath, parent: Node) -> Optional['PyrightTestFile']:
-    if path.ext == '.py' and is_typesafety_file(parent, path):
-        return PyrightTestFile.from_parent(parent, fspath=path)
+def pytest_collect_file(file_path: Path, parent: Node) -> Optional['PyrightTestFile']:
+    if file_path.suffix == '.py' and is_typesafety_file(parent, file_path):
+        return PyrightTestFile.from_parent(parent, path=file_path)
     return None
 
 
