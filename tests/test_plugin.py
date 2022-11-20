@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 import pytest
 
@@ -17,11 +18,11 @@ SUMMARY_LINES = [
 
 
 @pytest.fixture(autouse=True)
-def makeconfig(pytester: 'Pytester') -> None:
+def makeconfig(pytester: Pytester) -> None:
     pytester.makefile('.json', pyrightconfig=json.dumps({'typeCheckingMode': 'strict'}))
 
 
-def test_collection(pytester: 'Pytester') -> None:
+def test_collection(pytester: Pytester) -> None:
     pytester.makepyfile(**{'typesafety/example.py': '', 'typesafety/foo/foo.py': ''})
 
     result = pytester.runpytest('--collect-only')
@@ -40,7 +41,7 @@ def test_collection(pytester: 'Pytester') -> None:
     assert result.ret == 0
 
 
-def test_reveal_type(pytester: 'Pytester') -> None:
+def test_reveal_type(pytester: Pytester) -> None:
     content = '''
     from typing import Union
 
@@ -55,7 +56,7 @@ def test_reveal_type(pytester: 'Pytester') -> None:
     result.assert_outcomes(passed=1)
 
 
-def test_reveal_type_incorrect_comment(pytester: 'Pytester') -> None:
+def test_reveal_type_incorrect_comment(pytester: Pytester) -> None:
     content = '''
     def foo(a: str) -> None:
         reveal_type(a)  # T: int
@@ -74,7 +75,7 @@ def test_reveal_type_incorrect_comment(pytester: 'Pytester') -> None:
     )
 
 
-def test_reveal_type_missing_comment(pytester: 'Pytester') -> None:
+def test_reveal_type_missing_comment(pytester: Pytester) -> None:
     content = '''
     def foo(a: str) -> None:
         reveal_type(a)
@@ -93,7 +94,7 @@ def test_reveal_type_missing_comment(pytester: 'Pytester') -> None:
     )
 
 
-def test_error_message(pytester: 'Pytester') -> None:
+def test_error_message(pytester: Pytester) -> None:
     content = '''
     from typing import Optional
 
@@ -105,7 +106,7 @@ def test_error_message(pytester: 'Pytester') -> None:
     result.assert_outcomes(passed=1)
 
 
-def test_error_message_comment_no_error(pytester: 'Pytester') -> None:
+def test_error_message_comment_no_error(pytester: Pytester) -> None:
     content = '''
     from typing import Optional
 
@@ -129,7 +130,7 @@ def test_error_message_comment_no_error(pytester: 'Pytester') -> None:
     assert 'pytest_pyright.plugin.PyrightError' not in result.stdout.str()
 
 
-def test_error_message_missing(pytester: 'Pytester') -> None:
+def test_error_message_missing(pytester: Pytester) -> None:
     content = '''
     from typing import Optional
 
@@ -153,7 +154,7 @@ def test_error_message_missing(pytester: 'Pytester') -> None:
     assert 'pytest_pyright.plugin.PyrightError' not in result.stdout.str()
 
 
-def test_unexpected_error_first_line(pytester: 'Pytester') -> None:
+def test_unexpected_error_first_line(pytester: Pytester) -> None:
     content = '''
     from bad_module import foo
     '''
@@ -170,7 +171,7 @@ def test_unexpected_error_first_line(pytester: 'Pytester') -> None:
     )
 
 
-def test_multiple_errors(pytester: 'Pytester') -> None:
+def test_multiple_errors(pytester: Pytester) -> None:
     content = '''
     from typing import Optional
 
@@ -198,7 +199,7 @@ def test_multiple_errors(pytester: 'Pytester') -> None:
     )
 
 
-def test_custom_pyright_directory_commandline(pytester: 'Pytester') -> None:
+def test_custom_pyright_directory_commandline(pytester: Pytester) -> None:
     content = '''
     from typing import Optional
 
@@ -214,7 +215,7 @@ def test_custom_pyright_directory_commandline(pytester: 'Pytester') -> None:
 
 
 def test_custom_pyright_directory_commandline_multiple_parts(
-    pytester: 'Pytester',
+    pytester: Pytester,
 ) -> None:
     content = '''
     from typing import Optional
