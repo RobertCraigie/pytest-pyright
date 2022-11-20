@@ -1,5 +1,5 @@
 # name: test_large_file
-  '
+  '''
   1   | def foo() -> None:
   2   | 
   3   | 
@@ -102,14 +102,14 @@
   100 | 
   101 | print(a)
   E   | Unexpected error: "a" is not defined
-  '
----
+  '''
+# ---
 # name: test_small_file
-  '
+  '''
   1 | 
   2 |     def foo() -> None:
   3 |         print(b)
   E | Unexpected error: "b" is not defined
   4 |
-  '
----
+  '''
+# ---

@@ -25,10 +25,14 @@ jobs:
       max-parallel: 2
       matrix:
         include:
-        - python-version: 3.6
-          tox-env: py36
+        - python-version: 3.7
+          tox-env: py37
+        - python-version: 3.8
+          tox-env: py38
         - python-version: 3.9
           tox-env: py39,docs
+        - python-version: '3.10'
+          tox-env: py310
 
     steps:
       - uses: actions/checkout@v1
@@ -66,7 +70,7 @@ jobs:
     strategy:
       max-parallel: 2
       matrix:
-        python-version: [3.6]
+        python-version: [3.7]
 
     steps:
       - uses: actions/checkout@v1

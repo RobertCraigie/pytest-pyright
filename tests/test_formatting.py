@@ -1,4 +1,4 @@
-from syrupy import SnapshotAssertion
+from syrupy.assertion import SnapshotAssertion
 from pytest_pyright.plugin import PyrightErrors, PyrightError, PyrightTerminalRepr
 
 

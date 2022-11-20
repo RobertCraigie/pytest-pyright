@@ -37,7 +37,7 @@ setup(
     long_description=read('README.rst'),
     packages=find_packages(where='src', include=['pytest_pyright', 'pytest_pyright.*']),
     package_dir={'': 'src'},
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     install_requires=read('requirements.txt').splitlines(),
     zip_safe=False,
     classifiers=[

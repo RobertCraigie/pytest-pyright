@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 import pytest
 
@@ -6,7 +7,7 @@ import json
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from _pytest.pytester import Testdir
+    from _pytest.pytester import Pytester
 
 
 SUMMARY_LINES = [
@@ -17,14 +18,14 @@ SUMMARY_LINES = [
 
 
 @pytest.fixture(autouse=True)
-def makeconfig(testdir: 'Testdir') -> None:
-    testdir.makefile('.json', pyrightconfig=json.dumps({'typeCheckingMode': 'strict'}))
+def makeconfig(pytester: Pytester) -> None:
+    pytester.makefile('.json', pyrightconfig=json.dumps({'typeCheckingMode': 'strict'}))
 
 
-def test_collection(testdir: 'Testdir') -> None:
-    testdir.makepyfile(**{'typesafety/example.py': '', 'typesafety/foo/foo.py': ''})
+def test_collection(pytester: Pytester) -> None:
+    pytester.makepyfile(**{'typesafety/example.py': '', 'typesafety/foo/foo.py': ''})
 
-    result = testdir.runpytest('--collect-only')
+    result = pytester.runpytest('--collect-only')
     outcomes = result.parseoutcomes()
     assert outcomes['tests'] == 2
 
@@ -40,7 +41,7 @@ def test_collection(testdir: 'Testdir') -> None:
     assert result.ret == 0
 
 
-def test_reveal_type(testdir: 'Testdir') -> None:
+def test_reveal_type(pytester: Pytester) -> None:
     content = '''
     from typing import Union
 
@@ -50,18 +51,18 @@ def test_reveal_type(testdir: 'Testdir') -> None:
         else:
             reveal_type(a)  # T: int
     '''
-    testdir.makepyfile(**{'typesafety/bar.py': content})
-    result = testdir.runpytest()
+    pytester.makepyfile(**{'typesafety/bar.py': content})
+    result = pytester.runpytest()
     result.assert_outcomes(passed=1)
 
 
-def test_reveal_type_incorrect_comment(testdir: 'Testdir') -> None:
+def test_reveal_type_incorrect_comment(pytester: Pytester) -> None:
     content = '''
     def foo(a: str) -> None:
         reveal_type(a)  # T: int
     '''
-    testdir.makepyfile(**{'typesafety/bar.py': content})
-    result = testdir.runpytest()
+    pytester.makepyfile(**{'typesafety/bar.py': content})
+    result = pytester.runpytest()
     result.assert_outcomes(failed=1)
     result.stdout.fnmatch_lines(
         [
@@ -74,13 +75,13 @@ def test_reveal_type_incorrect_comment(testdir: 'Testdir') -> None:
     )
 
 
-def test_reveal_type_missing_comment(testdir: 'Testdir') -> None:
+def test_reveal_type_missing_comment(pytester: Pytester) -> None:
     content = '''
     def foo(a: str) -> None:
         reveal_type(a)
     '''
-    testdir.makepyfile(**{'typesafety/bar.py': content})
-    result = testdir.runpytest()
+    pytester.makepyfile(**{'typesafety/bar.py': content})
+    result = pytester.runpytest()
     result.assert_outcomes(failed=1)
     result.stdout.fnmatch_lines(
         [
@@ -93,27 +94,27 @@ def test_reveal_type_missing_comment(testdir: 'Testdir') -> None:
     )
 
 
-def test_error_message(testdir: 'Testdir') -> None:
+def test_error_message(pytester: Pytester) -> None:
     content = '''
     from typing import Optional
 
     def foo(a: Optional[str]) -> None:
         print(a.split('.'))  # E: "split" is not a known member of "None"
     '''
-    testdir.makepyfile(**{'typesafety/bar.py': content})
-    result = testdir.runpytest()
+    pytester.makepyfile(**{'typesafety/bar.py': content})
+    result = pytester.runpytest()
     result.assert_outcomes(passed=1)
 
 
-def test_error_message_comment_no_error(testdir: 'Testdir') -> None:
+def test_error_message_comment_no_error(pytester: Pytester) -> None:
     content = '''
     from typing import Optional
 
     def foo(a: str) -> None:
         print(a.split('.'))  # E: "split" is not a known member of "None"
     '''
-    testdir.makepyfile(**{'typesafety/bar.py': content})
-    result = testdir.runpytest()
+    pytester.makepyfile(**{'typesafety/bar.py': content})
+    result = pytester.runpytest()
     result.assert_outcomes(failed=1)
     result.stdout.fnmatch_lines(
         [
@@ -129,15 +130,15 @@ def test_error_message_comment_no_error(testdir: 'Testdir') -> None:
     assert 'pytest_pyright.plugin.PyrightError' not in result.stdout.str()
 
 
-def test_error_message_missing(testdir: 'Testdir') -> None:
+def test_error_message_missing(pytester: Pytester) -> None:
     content = '''
     from typing import Optional
 
     def foo(a: Optional[str]) -> None:
         print(a.split('.'))
     '''
-    testdir.makepyfile(**{'typesafety/bar.py': content})
-    result = testdir.runpytest()
+    pytester.makepyfile(**{'typesafety/bar.py': content})
+    result = pytester.runpytest()
     result.assert_outcomes(failed=1)
     result.stdout.fnmatch_lines(
         [
@@ -153,12 +154,12 @@ def test_error_message_missing(testdir: 'Testdir') -> None:
     assert 'pytest_pyright.plugin.PyrightError' not in result.stdout.str()
 
 
-def test_unexpected_error_first_line(testdir: 'Testdir') -> None:
+def test_unexpected_error_first_line(pytester: Pytester) -> None:
     content = '''
     from bad_module import foo
     '''
-    testdir.makepyfile(**{'typesafety/bar.py': content})
-    result = testdir.runpytest()
+    pytester.makepyfile(**{'typesafety/bar.py': content})
+    result = pytester.runpytest()
     result.assert_outcomes(failed=1)
     result.stdout.fnmatch_lines(
         [
@@ -170,7 +171,7 @@ def test_unexpected_error_first_line(testdir: 'Testdir') -> None:
     )
 
 
-def test_multiple_errors(testdir: 'Testdir') -> None:
+def test_multiple_errors(pytester: Pytester) -> None:
     content = '''
     from typing import Optional
 
@@ -179,8 +180,8 @@ def test_multiple_errors(testdir: 'Testdir') -> None:
         if a is not None:
             reveal_type(a)
     '''
-    testdir.makepyfile(**{'typesafety/bar.py': content})
-    result = testdir.runpytest()
+    pytester.makepyfile(**{'typesafety/bar.py': content})
+    result = pytester.runpytest()
     result.assert_outcomes(failed=1)
     result.stdout.fnmatch_lines(
         [
@@ -198,23 +199,23 @@ def test_multiple_errors(testdir: 'Testdir') -> None:
     )
 
 
-def test_custom_pyright_directory_commandline(testdir: 'Testdir') -> None:
+def test_custom_pyright_directory_commandline(pytester: Pytester) -> None:
     content = '''
     from typing import Optional
 
     def foo(a: Optional[str]) -> None:
         print(a.split('.'))
     '''
-    testdir.makepyfile(**{'my_pyright_tests/bar.py': content})
-    result = testdir.runpytest('--collect-only')
+    pytester.makepyfile(**{'my_pyright_tests/bar.py': content})
+    result = pytester.runpytest('--collect-only')
     assert result.parseoutcomes() == {}
 
-    result = testdir.runpytest('--pyright-dir=my_pyright_tests', '--collect-only')
+    result = pytester.runpytest('--pyright-dir=my_pyright_tests', '--collect-only')
     assert result.parseoutcomes() == {'test': 1}
 
 
 def test_custom_pyright_directory_commandline_multiple_parts(
-    testdir: 'Testdir',
+    pytester: Pytester,
 ) -> None:
     content = '''
     from typing import Optional
@@ -222,11 +223,11 @@ def test_custom_pyright_directory_commandline_multiple_parts(
     def foo(a: Optional[str]) -> None:
         print(a.split('.'))
     '''
-    testdir.makepyfile(**{'custom_typesafety/pyright/bar.py': content})
-    result = testdir.runpytest('--collect-only')
+    pytester.makepyfile(**{'custom_typesafety/pyright/bar.py': content})
+    result = pytester.runpytest('--collect-only')
     assert result.parseoutcomes() == {}
 
-    result = testdir.runpytest(
+    result = pytester.runpytest(
         '--pyright-dir=custom_typesafety/pyright', '--collect-only'
     )
     assert result.parseoutcomes() == {'test': 1}
