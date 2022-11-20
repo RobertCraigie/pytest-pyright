@@ -25,8 +25,8 @@ jobs:
       max-parallel: 2
       matrix:
         include:
-        - python-version: 3.6
-          tox-env: py36
+        - python-version: 3.7
+          tox-env: py37
         - python-version: 3.9
           tox-env: py39,docs
 
