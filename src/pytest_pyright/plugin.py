@@ -269,7 +269,7 @@ class PyrightTestFile(pytest.File):
     @classmethod
     def from_parent(
         cls, *args: Any, **kwargs: Any
-    ) -> 'PyrightTestFile':  # pyright: reportIncompatibleMethodOverride=false
+    ) -> 'PyrightTestFile':  # pyright: ignore[reportIncompatibleMethodOverride]
         return cast(
             PyrightTestFile,
             super().from_parent(*args, **kwargs),

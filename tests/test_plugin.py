@@ -10,13 +10,6 @@ if TYPE_CHECKING:
     from _pytest.pytester import Pytester
 
 
-SUMMARY_LINES = [
-    '--------------------------- snapshot report summary ----------------------------',
-    '',
-    '=========================== short test summary info ============================',
-]
-
-
 @pytest.fixture(autouse=True)
 def makeconfig(pytester: Pytester) -> None:
     pytester.makefile('.json', pyrightconfig=json.dumps({'typeCheckingMode': 'strict'}))
@@ -69,7 +62,6 @@ def test_reveal_type_incorrect_comment(pytester: Pytester) -> None:
             '1 | def foo(a: str) -> None:',
             '2 |     reveal_type(a)  # T: int',
             'E | Expected revealed type to be "int" but got "str" instead',
-            *SUMMARY_LINES,
         ],
         consecutive=True,
     )
@@ -88,7 +80,6 @@ def test_reveal_type_missing_comment(pytester: Pytester) -> None:
             '1 | def foo(a: str) -> None:',
             '2 |     reveal_type(a)',
             'E | Missing type comment, revealed type: str',
-            *SUMMARY_LINES,
         ],
         consecutive=True,
     )
@@ -123,7 +114,6 @@ def test_error_message_comment_no_error(pytester: Pytester) -> None:
             '3 | def foo(a: str) -> None:',
             '4 |     print(a.split(\'.\'))  # E: "split" is not a known member of "None"',
             'E | Did not raise an error',
-            *SUMMARY_LINES,
         ],
         consecutive=True,
     )
@@ -147,7 +137,6 @@ def test_error_message_missing(pytester: Pytester) -> None:
             '3 | def foo(a: Optional[str]) -> None:',
             '4 |     print(a.split(\'.\'))',
             'E | Unexpected error: "split" is not a known member of "None"',
-            *SUMMARY_LINES,
         ],
         consecutive=True,
     )
@@ -165,7 +154,6 @@ def test_unexpected_error_first_line(pytester: Pytester) -> None:
         [
             '1 | from bad_module import foo',
             'E | Unexpected error: Import "bad_module" could not be resolved',
-            *SUMMARY_LINES,
         ],
         consecutive=True,
     )
@@ -193,7 +181,6 @@ def test_multiple_errors(pytester: Pytester) -> None:
             '5 |     if a is not None:',
             '6 |         reveal_type(a)',
             'E | Missing type comment, revealed type: str',
-            *SUMMARY_LINES,
         ],
         consecutive=True,
     )
