@@ -23,4 +23,4 @@ def model_parse_json(model: type[_ModelT], obj: str | bytes) -> _ModelT:
     if PYDANTIC_V2:
         return model.model_validate_json(obj)
     else:
-        return model.parse_raw(obj)  # type: ignore[no-any-return]  # pyright: ignore[reportDeprecated]
+        return model.parse_raw(obj)  # type: ignore
