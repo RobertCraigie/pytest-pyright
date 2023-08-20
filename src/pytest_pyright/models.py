@@ -5,6 +5,8 @@ from typing import List, Dict, Optional
 
 from pydantic import BaseModel, Field
 
+from ._compat import model_rebuild
+
 
 TYPE_ERROR_RE = re.compile(r'.*# E: (?P<expected>.*)')
 REVEAL_TYPE_RE = re.compile(r'\s+reveal_type\(.*\)\s+# T: (?P<expected>.*)')
@@ -68,7 +70,7 @@ class PyrightDiagnostic(BaseModel):
     message: str
     severity: str  # TODO: enum
     range: 'PyrightRange'
-    rule: Optional[str]
+    rule: Optional[str] = None
 
 
 class PyrightRange(BaseModel):
@@ -81,6 +83,6 @@ class PyrightRangeValue(BaseModel):
     character: int
 
 
-PyrightRange.update_forward_refs()
-PyrightResult.update_forward_refs()
-PyrightDiagnostic.update_forward_refs()
+model_rebuild(PyrightRange)
+model_rebuild(PyrightResult)
+model_rebuild(PyrightDiagnostic)

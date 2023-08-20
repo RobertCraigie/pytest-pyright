@@ -17,6 +17,7 @@ from _pytest._code import ExceptionInfo
 from _pytest._code.code import TerminalRepr
 
 from .models import PyrightResult, PyrightFile
+from ._compat import model_parse_json
 
 if TYPE_CHECKING:
     from _pytest._code.code import _TracebackStyle
@@ -161,7 +162,7 @@ class PyrightTestItem(pytest.Item):
                 'see the captured output for more details.'
             )
 
-        result = PyrightResult.parse_raw(process.stdout)
+        result = model_parse_json(PyrightResult, process.stdout)
         absolute = str(self.path.absolute())
         errors: List[PyrightError] = []
 
@@ -268,7 +269,7 @@ class PyrightTestFile(pytest.File):
     @classmethod
     def from_parent(
         cls, *args: Any, **kwargs: Any
-    ) -> 'PyrightTestFile':  # pyright: reportIncompatibleMethodOverride=false
+    ) -> 'PyrightTestFile':  # pyright: ignore[reportIncompatibleMethodOverride]
         return cast(
             PyrightTestFile,
             super().from_parent(*args, **kwargs),
