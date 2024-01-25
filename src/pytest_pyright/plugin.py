@@ -45,8 +45,10 @@ def is_typesafety_file(parent: Node, path: Path) -> bool:
 
 
 def maybe_decode(data: Union[bytes, str]) -> str:
-    if isinstance(data, bytes):
+    if isinstance(data, (bytes, bytearray)):
         return data.decode('utf-8')
+    if isinstance(data, memoryview):
+        raise TypeError(f'Unexpected type: {type(data)}')
     return data
 
 
