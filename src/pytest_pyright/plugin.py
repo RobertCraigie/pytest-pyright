@@ -171,7 +171,7 @@ class PyrightTestItem(pytest.Item):
         for diagnostic in result.diagnostics:
             if diagnostic.file != absolute:
                 raise PyrightError(
-                    f'Received diagnostic for unknown file: {diagnostic.file}'
+                    f'Received diagnostic for unknown file: {diagnostic.file}; Expected {absolute}'
                 )
 
             # pyright json diagnostic line numbers are 0-based
