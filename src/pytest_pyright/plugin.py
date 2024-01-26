@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import re
 import sys
 import subprocess
@@ -165,11 +166,12 @@ class PyrightTestItem(pytest.Item):
             )
 
         result = model_parse_json(PyrightResult, process.stdout)
-        absolute = str(self.path.absolute())
+
+        absolute = os.path.normcase(str(self.path.absolute()))
         errors: List[PyrightError] = []
 
         for diagnostic in result.diagnostics:
-            if diagnostic.file != absolute:
+            if os.path.normcase(diagnostic.file) != absolute:
                 raise PyrightError(
                     f'Received diagnostic for unknown file: {diagnostic.file}; Expected {absolute}'
                 )
